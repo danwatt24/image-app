@@ -4,6 +4,8 @@ import { promises as fs } from "fs";
 import path from "path";
 import multer from "multer";
 import sharp from "sharp";
+import database from "./database.js";
+import utils from "./utils.js";
 
 const IMAGES = "./images";
 const THUMB = "./thumbs";
@@ -35,27 +37,40 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.post("/upload", upload.single("image"), async (req, res) => {
-  console.log("file", req.file);
+  const { filename, path: filepath } = req.file;
+  // console.log("file", req.file);
+  const { author, quote } = req.body;
+  if (!author || !quote || !req.file)
+    return res.status(400).send("missing image, author and or quote");
+
   try {
-    await sharp(req.file.path)
+    const fileHash = await utils.checksum(filepath);
+    const exists = await database.getByAuthorQuoteOrHash(
+      author,
+      quote,
+      fileHash
+    );
+    if (exists) return res.status(400).send("quote already exists");
+
+    await sharp(filepath)
       .resize(64, 64)
       .withMetadata()
       .toFile(
-        path.resolve(
-          "./thumbs",
-          req.file.filename.replace(/\.(jpeg|png)$/, `.jpg`)
-        )
+        path.resolve("./thumbs", filename.replace(/\.(jpeg|png)$/, `.jpg`))
       );
+    const id = await database.insert(filename, author, quote, fileHash);
+    return res.send(id.toString());
   } catch (err) {
     console.error(err);
-    return res.status(500).send(err);
+    return res.status(500).send(err.message);
   }
-  return res.sendStatus(200);
 });
 
 app.listen(port, async () => {
   await Promise.all(
     [IMAGES, THUMB].map((folder) => fs.mkdir(folder, { recursive: true }))
   );
+
+  await database.init("./images.db");
   console.log(`Example app listening on port ${port}`);
 });
