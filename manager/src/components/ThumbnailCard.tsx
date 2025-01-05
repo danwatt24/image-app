@@ -7,8 +7,11 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import Typography from "@mui/material/Typography";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useCallback, useState } from "react";
-import { Modal } from "@mui/material";
+import { useCallback, useMemo, useState } from "react";
+import api from "../utils/api";
+import Modal from "@mui/material/Modal";
+import TextField from "@mui/material/TextField";
+import Grid from "@mui/material/Grid2";
 
 interface Props {
   model: {
@@ -17,18 +20,41 @@ interface Props {
     author: string;
     quote: string;
   };
-  loading: boolean;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  onDeleted: () => void;
 }
 
 export default function ThumbnailCard(props: Props) {
   const model = props.model;
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const handleEdit = useCallback(() => {}, []);
-  const handleDelete = useCallback(() => setDeleteOpen(true), []);
+  const [loading, setLoading] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const [author, setAuthor] = useState(model.author);
+  const [quote, setQuote] = useState(model.quote);
+
+  const closeEdit = () => setEditOpen(false);
+  const closeConfirm = () => setConfirmOpen(false);
+
+  const handleEdit = useCallback(() => setEditOpen(true), []);
+  const handleConfirm = useCallback(() => setConfirmOpen(true), []);
+  const handleDelete = async (id: number) => {
+    setLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 2000));
+      const resp = await api.deleteImage(id);
+      console.log("-----------delete", resp);
+    } catch (ex) {
+      console.error("--------------err", ex);
+    }
+    props.onDeleted();
+    setLoading(false);
+  };
+
+  const imageUrl = useMemo(
+    () => `http://localhost:3000/thumbnails/${model.image}`,
+    [model]
+  );
 
   return (
     <>
@@ -37,7 +63,7 @@ export default function ThumbnailCard(props: Props) {
           component="img"
           alt="green iguana"
           height="140"
-          image={`http://localhost:3000/thumbnails/${model.image}`}
+          image={imageUrl}
         />
         <CardContent>
           <Typography gutterBottom variant="h5" component="div">
@@ -51,7 +77,7 @@ export default function ThumbnailCard(props: Props) {
           <LoadingButton
             size="small"
             startIcon={<EditIcon />}
-            loading={props.loading}
+            loading={loading}
             onClick={handleEdit}
           >
             Edit
@@ -59,7 +85,7 @@ export default function ThumbnailCard(props: Props) {
           <Button
             size="small"
             startIcon={<DeleteIcon />}
-            onClick={handleDelete}
+            onClick={handleConfirm}
           >
             Remove
           </Button>
@@ -67,8 +93,8 @@ export default function ThumbnailCard(props: Props) {
       </Card>
       {/* ------------ DELETE ------------ */}
       <Modal
-        open={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
+        open={confirmOpen}
+        onClose={closeConfirm}
         sx={{ justifyItems: "center", alignContent: "center" }}
       >
         <Card sx={{ maxWidth: 300, justifyItems: "center" }}>
@@ -83,8 +109,8 @@ export default function ThumbnailCard(props: Props) {
               variant="contained"
               color="error"
               onClick={() => {
-                setDeleteOpen(false);
-                props.onDelete(model.id);
+                closeConfirm();
+                handleDelete(model.id);
               }}
             >
               Yes
@@ -93,9 +119,73 @@ export default function ThumbnailCard(props: Props) {
               size="small"
               variant="outlined"
               color="primary"
-              onClick={() => setDeleteOpen(false)}
+              onClick={closeConfirm}
             >
               No
+            </Button>
+          </CardActions>
+        </Card>
+      </Modal>
+      {/* ------------  EDIT  ------------ */}
+      <Modal
+        open={editOpen}
+        onClose={closeEdit}
+        sx={{ justifyItems: "center", alignContent: "center" }}
+      >
+        <Card>
+          <CardContent>
+            <Grid container>
+              <Grid size={12}>
+                <Typography gutterBottom variant="h5" component="div">
+                  Editing Image
+                </Typography>
+              </Grid>
+              <Grid size={12} container spacing={1}>
+                <Grid size="auto">
+                  <img src={imageUrl} />
+                </Grid>
+                <Grid size="grow" container>
+                  <Grid size={12}>
+                    <TextField
+                      label="Author"
+                      placeholder="Unknown"
+                      fullWidth
+                      value={author}
+                      onChange={(e) => setAuthor(e.target.value)}
+                    />
+                  </Grid>
+                  <Grid size={12}>
+                    <TextField
+                      label="Quote"
+                      fullWidth
+                      multiline
+                      rows={4}
+                      value={quote}
+                      onChange={(e) => setQuote(e.target.value)}
+                      error={!quote}
+                      helperText={!quote ? "Quote must be provided" : " "}
+                    />
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          </CardContent>
+          <CardActions>
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              onClick={closeEdit}
+            >
+              Save
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              onClick={closeEdit}
+            >
+              Cancel
             </Button>
           </CardActions>
         </Card>

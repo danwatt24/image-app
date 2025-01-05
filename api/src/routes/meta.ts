@@ -25,7 +25,6 @@ router.get("/image/:uuid", async (req, res) => {
 router.get("/thumbs", async (req, res) => {
   try {
     const data = await meta.listAll();
-    console.log('-------------thumbs', data);
     const mapped = data.map(d => ({
       id: d.id,
       image: d.thumb,
@@ -46,7 +45,7 @@ router.delete("/:id", async (req, res) => {
   }
   try {
     const data = await meta.get(parseInt(id));
-    if (!data) return res.status(404);
+    if (!data) return res.sendStatus(404);
 
     const result = await meta.remove(data.id);
     if (result.affectedRows !== 1)
@@ -54,7 +53,7 @@ router.delete("/:id", async (req, res) => {
     
     await fs.rm(`${config.imageDir}/${data.image}`);
     await fs.rm(`${config.thumbnailDir}/${data.thumb}`);
-    return res.status(204);
+    return res.sendStatus(204);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to delete image" });
