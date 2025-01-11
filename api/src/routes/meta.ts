@@ -60,4 +60,17 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.patch("/", async (req, res) => {
+  const { id, author, quote } = req.body as { id: number, author: string, quote: string };
+  
+  try {
+    await meta.update(id, author, quote);
+    res.status(200).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update" });
+  }
+
+});
+
 export const metaRouter = router;

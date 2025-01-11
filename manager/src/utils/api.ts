@@ -14,7 +14,7 @@ export interface Thumbnail {
 
 const getThumbnails = async () => await api.get<Thumbnail[]>("/meta/thumbs");
 
-const uploadImage = (image:File) => {
+const addQuote = (image:File) => {
   const data = new FormData();
   data.append("image", image, image.name);
   data.append("author", "blah");
@@ -23,10 +23,17 @@ const uploadImage = (image:File) => {
   return api.post("/upload", data);
 };
 
-const deleteImage = (id: number) => api.delete(`/meta/${id}`);
+const deleteQuote = (id: number) => api.delete(`/meta/${id}`);
+
+const updateQuote = (id: number, author: string, quote: string) => api.patch("/meta", {
+  id,
+  author,
+  quote
+});
 
 export default {
   getThumbnails,
-  uploadImage,
-  deleteImage
+  addQuote,
+  deleteQuote,
+  updateQuote
 };

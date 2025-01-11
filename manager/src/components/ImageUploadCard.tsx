@@ -26,7 +26,7 @@ export default function ImageUploadCard(props: Props) {
     if (!file) return;
 
     try {
-      const resp = await api.uploadImage(file);
+      const resp = await api.addQuote(file);
       console.log("--------------data", resp.data);
     } catch (ex) {
       console.error("------------err", ex);

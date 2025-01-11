@@ -27,10 +27,16 @@ function remove(id:number) {
   return db.Delete(query, [id]);
 }
 
+function update(id: number, author: string, quote: string) {
+  const query = `UPDATE images SET author=?, quote=? WHERE id=?`;
+  return db.Update(query, [author, quote, id]);
+}
+
 export default {
   insert,
   get,
   getByUUID,
   listAll,
   remove,
+  update
 };

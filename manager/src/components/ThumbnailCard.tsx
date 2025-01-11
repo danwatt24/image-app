@@ -20,7 +20,7 @@ interface Props {
     author: string;
     quote: string;
   };
-  onDeleted: () => void;
+  onChange: () => void;
 }
 
 export default function ThumbnailCard(props: Props) {
@@ -38,18 +38,30 @@ export default function ThumbnailCard(props: Props) {
 
   const handleEdit = useCallback(() => setEditOpen(true), []);
   const handleConfirm = useCallback(() => setConfirmOpen(true), []);
-  const handleDelete = async (id: number) => {
+
+  const handleDelete = useCallback(async () => {
     setLoading(true);
     try {
       await new Promise((res) => setTimeout(res, 2000));
-      const resp = await api.deleteImage(id);
-      console.log("-----------delete", resp);
+      const resp = await api.deleteQuote(model.id);
+      if (resp.status === 200) props.onChange();
     } catch (ex) {
-      console.error("--------------err", ex);
+      console.error("delete err", ex);
     }
-    props.onDeleted();
     setLoading(false);
-  };
+  }, [model, props]);
+
+  const handleSave = useCallback(async () => {
+    setLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 2000));
+      const resp = await api.updateQuote(model.id, author, quote);
+      if (resp.status === 200) props.onChange();
+    } catch (ex) {
+      console.error("------------save err", ex);
+    }
+    setLoading(false);
+  }, [author, model.id, props, quote]);
 
   const imageUrl = useMemo(
     () => `http://localhost:3000/thumbnails/${model.image}`,
@@ -110,7 +122,7 @@ export default function ThumbnailCard(props: Props) {
               color="error"
               onClick={() => {
                 closeConfirm();
-                handleDelete(model.id);
+                handleDelete();
               }}
             >
               Yes
@@ -175,7 +187,10 @@ export default function ThumbnailCard(props: Props) {
               size="small"
               variant="contained"
               color="primary"
-              onClick={closeEdit}
+              onClick={async () => {
+                await handleSave();
+                closeEdit();
+              }}
             >
               Save
             </Button>

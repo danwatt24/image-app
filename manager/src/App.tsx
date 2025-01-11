@@ -23,7 +23,7 @@ export default function App() {
       <Grid container direction="row" spacing={3} padding={3}>
         {thumbs.map((t) => (
           <Grid key={t.id}>
-            <ThumbnailCard model={{ ...t }} onDeleted={getThumbs} />
+            <ThumbnailCard model={{ ...t }} onChange={getThumbs} />
           </Grid>
         ))}
       </Grid>

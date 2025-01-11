@@ -22,6 +22,10 @@ export function initializeDatabase() {
       }
     );
   });
+
+  db.on('trace', (sql) => {
+    console.log('DB Query:', sql);
+  });
 }
 
 export function SelectOne<T>(query: string, params?: any[]) {
@@ -61,5 +65,9 @@ export function Insert(query:string, params: string[]) {
 }
 
 export function Delete(query: string, params?: any[]) {
+  return runQuery(query, params);
+}
+
+export function Update(query: string, params?: any[]) {
   return runQuery(query, params);
 }
