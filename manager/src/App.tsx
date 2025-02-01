@@ -19,8 +19,10 @@ export default function App() {
   return (
     <div style={{ textAlign: "center", marginTop: "20px" }}>
       <h1>Welcome to Manager App</h1>
-      <ImageUploadCard uploaded={getThumbs} />
       <Grid container direction="row" spacing={3} padding={3}>
+        <Grid>
+          <ImageUploadCard changed={getThumbs} />
+        </Grid>
         {thumbs.map((t) => (
           <Grid key={t.id}>
             <ThumbnailCard model={{ ...t }} onChange={getThumbs} />

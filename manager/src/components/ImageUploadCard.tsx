@@ -1,55 +1,36 @@
 import Button from "@mui/material/Button";
-import { styled } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { ChangeEvent } from "react";
-import api from "../utils/api";
+import { Modal } from "@mui/material";
+import { useState } from "react";
+import AddEditQuote from "./AddEditQuote";
 
 interface Props {
-  uploaded: () => void;
+  changed: () => void;
 }
 
-const VisuallyHiddenInput = styled("input")({
-  clip: "rect(0 0 0 0)",
-  clipPath: "inset(50%)",
-  height: 1,
-  overflow: "hidden",
-  position: "absolute",
-  bottom: 0,
-  left: 0,
-  whiteSpace: "nowrap",
-  width: 1,
-});
-
 export default function ImageUploadCard(props: Props) {
-  const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const resp = await api.addQuote(file);
-      console.log("--------------data", resp.data);
-    } catch (ex) {
-      console.error("------------err", ex);
-    }
-    e.target.value = "";
-    props.uploaded();
-  };
+  const [showAdd, setShowAdd] = useState(false);
 
   return (
-    <Button
-      component="label"
-      role="button"
-      variant="contained"
-      color="primary"
-      tabIndex={-1}
-      startIcon={<CloudUploadIcon />}
-    >
-      Upload File
-      <VisuallyHiddenInput
-        type="file"
-        onChange={handleUpload}
-        accept="image/*"
-      />
-    </Button>
+    <>
+      <Button
+        variant="outlined"
+        sx={{ height: "100%", width: 180, minHeight: 280 }}
+        onClick={() => setShowAdd(true)}
+      >
+        Add Quote
+      </Button>
+      <Modal
+        open={showAdd}
+        onClose={() => setShowAdd(false)}
+        sx={{ justifyItems: "center", alignContent: "center" }}
+      >
+        <div>
+          <AddEditQuote
+            onClose={() => setShowAdd(false)}
+            onChange={props.changed}
+          />
+        </div>
+      </Modal>
+    </>
   );
 }

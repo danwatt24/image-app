@@ -10,8 +10,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useCallback, useMemo, useState } from "react";
 import api from "../utils/api";
 import Modal from "@mui/material/Modal";
-import TextField from "@mui/material/TextField";
-import Grid from "@mui/material/Grid2";
+import AddEditQuote from "./AddEditQuote";
 
 interface Props {
   model: {
@@ -26,42 +25,27 @@ interface Props {
 export default function ThumbnailCard(props: Props) {
   const model = props.model;
 
-  const [loading, setLoading] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
-  const [author, setAuthor] = useState(model.author);
-  const [quote, setQuote] = useState(model.quote);
-
-  const closeEdit = () => setEditOpen(false);
   const closeConfirm = () => setConfirmOpen(false);
+  const closeEdit = () => setEditOpen(false);
 
-  const handleEdit = useCallback(() => setEditOpen(true), []);
   const handleConfirm = useCallback(() => setConfirmOpen(true), []);
+  const handleEdit = useCallback(() => setEditOpen(true), []);
 
   const handleDelete = useCallback(async () => {
     setLoading(true);
     try {
       await new Promise((res) => setTimeout(res, 2000));
       const resp = await api.deleteQuote(model.id);
-      if (resp.status === 200) props.onChange();
+      if (resp.status === 204) props.onChange();
     } catch (ex) {
       console.error("delete err", ex);
     }
     setLoading(false);
   }, [model, props]);
-
-  const handleSave = useCallback(async () => {
-    setLoading(true);
-    try {
-      await new Promise((res) => setTimeout(res, 2000));
-      const resp = await api.updateQuote(model.id, author, quote);
-      if (resp.status === 200) props.onChange();
-    } catch (ex) {
-      console.error("------------save err", ex);
-    }
-    setLoading(false);
-  }, [author, model.id, props, quote]);
 
   const imageUrl = useMemo(
     () => `http://localhost:3000/thumbnails/${model.image}`,
@@ -86,21 +70,23 @@ export default function ThumbnailCard(props: Props) {
           </Typography>
         </CardContent>
         <CardActions>
-          <LoadingButton
+          <Button
             size="small"
             startIcon={<EditIcon />}
-            loading={loading}
             onClick={handleEdit}
+            disabled={isLoading}
           >
             Edit
-          </LoadingButton>
-          <Button
+          </Button>
+          <LoadingButton
             size="small"
             startIcon={<DeleteIcon />}
             onClick={handleConfirm}
+            loading={isLoading}
+            disabled={isLoading}
           >
             Remove
-          </Button>
+          </LoadingButton>
         </CardActions>
       </Card>
       {/* ------------ DELETE ------------ */}
@@ -144,66 +130,13 @@ export default function ThumbnailCard(props: Props) {
         onClose={closeEdit}
         sx={{ justifyItems: "center", alignContent: "center" }}
       >
-        <Card>
-          <CardContent>
-            <Grid container>
-              <Grid size={12}>
-                <Typography gutterBottom variant="h5" component="div">
-                  Editing Image
-                </Typography>
-              </Grid>
-              <Grid size={12} container spacing={1}>
-                <Grid size="auto">
-                  <img src={imageUrl} />
-                </Grid>
-                <Grid size="grow" container>
-                  <Grid size={12}>
-                    <TextField
-                      label="Author"
-                      placeholder="Unknown"
-                      fullWidth
-                      value={author}
-                      onChange={(e) => setAuthor(e.target.value)}
-                    />
-                  </Grid>
-                  <Grid size={12}>
-                    <TextField
-                      label="Quote"
-                      fullWidth
-                      multiline
-                      rows={4}
-                      value={quote}
-                      onChange={(e) => setQuote(e.target.value)}
-                      error={!quote}
-                      helperText={!quote ? "Quote must be provided" : " "}
-                    />
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Grid>
-          </CardContent>
-          <CardActions>
-            <Button
-              size="small"
-              variant="contained"
-              color="primary"
-              onClick={async () => {
-                await handleSave();
-                closeEdit();
-              }}
-            >
-              Save
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              color="error"
-              onClick={closeEdit}
-            >
-              Cancel
-            </Button>
-          </CardActions>
-        </Card>
+        <div>
+          <AddEditQuote
+            model={model}
+            onChange={props.onChange}
+            onClose={closeEdit}
+          />
+        </div>
       </Modal>
     </>
   );
