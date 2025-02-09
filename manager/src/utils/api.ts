@@ -14,6 +14,12 @@ export interface Thumbnail {
 
 const getThumbnails = async () => await api.get<Thumbnail[]>("/meta/thumbs");
 
+export interface Quote {
+  file?: File;
+  author?: string;
+  quote: string;
+}
+
 const addQuote = (data: Quote) => {
   const { file, author, quote } = data;
   if (!file) throw new Error("no file provided to add");
@@ -24,12 +30,6 @@ const addQuote = (data: Quote) => {
 
   return api.post("/upload", form);
 };
-
-export interface Quote {
-  file?: File;
-  author?: string;
-  quote: string;
-}
 
 const deleteQuote = (id: number) => api.delete(`/meta/${id}`);
 
